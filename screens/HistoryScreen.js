@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
+import theme from '../theme';
 
 const dummyData = [
   { id: '1', species: 'Clownfish', confidence: '98%', date: '2025-03-20' },
@@ -14,7 +15,7 @@ export default function HistoryScreen() {
         data={dummyData}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <Text>{item.date}: {item.species} ({item.confidence})</Text>
+          <Text style={styles.itemText}>{item.date}: {item.species} ({item.confidence})</Text>
         )}
       />
     </View>
@@ -22,6 +23,18 @@ export default function HistoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
-  header: { fontSize: 24, fontWeight: 'bold', marginBottom: 10 },
+  container: {
+    flex: 1,
+    padding: theme.spacing.medium,
+    backgroundColor: theme.colors.background,
+  },
+  header: {
+    ...theme.typography.header,
+    marginBottom: theme.spacing.small,
+  },
+  itemText: {
+    fontSize: 16,
+    color: theme.colors.darkText,
+    marginBottom: theme.spacing.small,
+  },
 });
