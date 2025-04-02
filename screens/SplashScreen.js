@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ImageBackground } from 'react-native';
 
 export default function SplashScreen({ navigation }) {
   useEffect(() => {
-    setTimeout(() => navigation.replace('Onboarding'), 3000);
+    setTimeout(() => navigation.replace('Home'), 3000);
   }, []);
 
   return (
