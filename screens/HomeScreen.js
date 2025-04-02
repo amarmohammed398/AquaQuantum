@@ -1,82 +1,118 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import QuantumLogo from '../components/QuantumLogo';  // Import the reusable component
 import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
+import theme from '../theme'; // Import the theme for consistent styles
 
-export default function HomeScreen({ navigation }) {
+const HomeScreen = ({ navigation }) => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>🌊 AquaQuantum Dashboard</Text>
-      <Text style={styles.subtext}>Scans: 12 | Species Identified: 9</Text>
+      {/* Reusable Quantum Logo Component */}
+      <QuantumLogo />
+
+      <Text style={styles.header}>AquaQuantum</Text>
+      <Text style={styles.subtext}>Maritime Hybrid CNN Quantum Classifier</Text>
+
+      <View style={styles.statsBox}>
+        <Text style={styles.statsText}>
+          Scans: <Text style={styles.statsNumber}>12</Text>
+        </Text>
+        <Text style={styles.statsText}>
+          Species Identified: <Text style={styles.statsNumber}>9</Text>
+        </Text>
+      </View>
 
       <View style={styles.cardContainer}>
         <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Camera')}>
-          <FontAwesome5 name="camera" size={28} color="#00bcd4" />
+          <FontAwesome5 name="camera" size={26} color={theme.colors.secondary} />
           <Text style={styles.cardText}>Start Scan</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('History')}>
-          <MaterialIcons name="history" size={28} color="#4caf50" />
+          <FontAwesome5 name="history" size={26} color={theme.colors.secondary} />
           <Text style={styles.cardText}>View History</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Map')}>
-          <FontAwesome5 name="map-marked-alt" size={28} color="#ff9800" />
+          <FontAwesome5 name="map-marked-alt" size={26} color={theme.colors.secondary} />
           <Text style={styles.cardText}>Map View</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('QuantumInsights')}>
-          <FontAwesome5 name="atom" size={28} color="#9c27b0" />
+          <FontAwesome5 name="atom" size={26} color={theme.colors.secondary} />
           <Text style={styles.cardText}>Quantum Insights</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
+    backgroundColor: theme.colors.background,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 40,
-    paddingHorizontal: 20,
-    backgroundColor: '#e0f7fa',
+    paddingVertical: theme.spacing.xLarge,
+    paddingHorizontal: theme.spacing.medium,
   },
   header: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#00796b',
-    marginBottom: 8,
+    ...theme.typography.header,
   },
   subtext: {
-    fontSize: 16,
-    color: '#555',
-    marginBottom: 24,
+    ...theme.typography.subtext,
+    marginBottom: theme.spacing.large,
   },
-  cardContainer: {
-    width: '100%',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  card: {
-    width: '48%',
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    paddingVertical: 20,
-    paddingHorizontal: 10,
-    marginBottom: 16,
+  statsBox: {
+    width: '85%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: theme.spacing.medium,
+    marginBottom: theme.spacing.large,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  statsText: {
+    fontSize: 15,
+    color: theme.colors.lightText,
+    marginBottom: 6,
+  },
+  statsNumber: {
+    fontWeight: '600',
+    color: theme.colors.primary,
+  },
+  cardContainer: {
+    width: '90%',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  card: {
+    width: '45%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingVertical: 24,
+    paddingHorizontal: 12,
+    marginBottom: theme.spacing.large,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
   cardText: {
     marginTop: 10,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '500',
-    color: '#333',
+    color: theme.colors.darkText,
+    textAlign: 'center',
   },
 });
+
+export default HomeScreen;
