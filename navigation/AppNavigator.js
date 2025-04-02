@@ -7,7 +7,6 @@ import OnboardingScreen from '../screens/OnboardingScreen';
 import HomeScreen from '../screens/HomeScreen';
 import CameraScreen from '../screens/CameraScreen';
 import HistoryScreen from '../screens/HistoryScreen';
-import SpeciesDetailScreen from '../screens/SpeciesDetailScreen';
 import MapScreen from '../screens/MapScreen';
 import QuantumInsightsScreen from '../screens/QuantumInsightsScreen';
 
@@ -22,7 +21,6 @@ export default function AppNavigator() {
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Camera" component={CameraScreen} />
         <Stack.Screen name="History" component={HistoryScreen} />
-        <Stack.Screen name="SpeciesDetail" component={SpeciesDetailScreen} />
         <Stack.Screen name="Map" component={MapScreen} />
         <Stack.Screen name="QuantumInsights" component={QuantumInsightsScreen} />
       </Stack.Navigator>
