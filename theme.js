@@ -1,7 +1,7 @@
 // theme.js
 const colors = {
     primary: '#5B86E5',    // Aqua blue
-    secondary: '#BC80C2',  // Aqua green
+    secondary: '#BC80C2',  
     tertiary: '#7E57C2',   // Purple
     lightBlue: '#90CAF9',
     lightPurple: '#9575CD',

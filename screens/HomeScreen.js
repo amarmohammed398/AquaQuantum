@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import QuantumLogo from '../components/QuantumLogo';  // Import the reusable component
@@ -11,7 +12,7 @@ const HomeScreen = ({ navigation }) => {
       <QuantumLogo />
 
       <Text style={styles.header}>AquaQuantum</Text>
-      <Text style={styles.subtext}>Maritime Hybrid CNN Quantum Classifier</Text>
+      <Text style={styles.subtext}>Hybrid CNN Quantum Classifier</Text>
 
       <View style={styles.statsBox}>
         <Text style={styles.statsText}>
@@ -83,7 +84,7 @@ const styles = StyleSheet.create({
   },
   statsNumber: {
     fontWeight: '600',
-    color: theme.colors.primary,
+    color: theme.colors.secondary,
   },
   cardContainer: {
     width: '90%',
@@ -116,3 +117,4 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
+
