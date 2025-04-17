@@ -22,50 +22,68 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 
 export default function CameraScreen() {
   const [hasPermission, setHasPermission] = useState(null);
-  const [capturedPhotoUri, setCapturedPhotoUri] = useState(null); // used for camera overlay
-  const [resultPhotoUri, setResultPhotoUri] = useState(null);     // used in result section
+  const [capturedPhotoUri, setCapturedPhotoUri] = useState(null);
+  const [resultPhotoUri, setResultPhotoUri] = useState(null);
   const [locationData, setLocationData] = useState(null);
   const [timestamp, setTimestamp] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [liveTimer, setLiveTimer] = useState('0.00');
   const cameraRef = useRef(null);
   const scrollRef = useRef(null);
+  const timerRef = useRef(null);
+  const startTimeRef = useRef(null);
   const navigation = useNavigation();
 
   useEffect(() => {
     (async () => {
-      try {
-        const { status } = await CameraModule.Camera.requestCameraPermissionsAsync();
-        setHasPermission(status === 'granted');
-      } catch (error) {
-        console.error('Camera permission error:', error);
-      }
+      const { status } = await CameraModule.Camera.requestCameraPermissionsAsync();
+      setHasPermission(status === 'granted');
     })();
   }, []);
 
   useEffect(() => {
-    const backAction = () => (isSyncing ? true : false);
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => isSyncing);
     return () => backHandler.remove();
   }, [isSyncing]);
+
+  const startTimer = () => {
+    startTimeRef.current = Date.now();
+    timerRef.current = setInterval(() => {
+      const now = Date.now();
+      const elapsed = ((now - startTimeRef.current) / 1000).toFixed(2);
+      setLiveTimer(elapsed);
+    }, 100);
+  };
+
+  const stopTimer = () => {
+    clearInterval(timerRef.current);
+    const endTime = Date.now();
+    const duration = ((endTime - startTimeRef.current) / 1000).toFixed(2);
+    setLiveTimer(duration);
+    return duration; // ✅ Return accurate duration
+  };
 
   const handleCapture = async () => {
     if (cameraRef.current) {
       setIsSyncing(true);
       setCapturedPhotoUri('FREEZE');
       setResultPhotoUri(null);
+      setLiveTimer('0.00');
 
       try {
         const photo = await cameraRef.current.takePictureAsync({ skipProcessing: true });
 
-        setCapturedPhotoUri(null);         // unfreeze camera immediately after photo is taken
-        setResultPhotoUri(photo.uri);      // store result photo
+        setCapturedPhotoUri(null);
+        setResultPhotoUri(photo.uri);
 
-        const start = Date.now();
-        await new Promise((resolve) => setTimeout(resolve, 1500)); // simulate analysis
-        const durationMs = Date.now() - start;
+        startTimer(); // Start the timer
 
-        const { status } = await Location.requestForegroundPermissionsAsync();
+        // Simulate classification delay
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+
+        // Get location
         let coords = null;
+        const { status } = await Location.requestForegroundPermissionsAsync();
         if (status === 'granted') {
           const location = await Location.getCurrentPositionAsync({});
           coords = {
@@ -75,21 +93,23 @@ export default function CameraScreen() {
           setLocationData(coords);
         }
 
-        const now = new Date().toLocaleString();
+        const duration = stopTimer(); // ✅ Get final duration
+        const timestampStr = new Date().toLocaleString();
+        setTimestamp(timestampStr);
+
         const newEntry = {
           id: Date.now().toString(),
           species: 'Dummy Fish',
           confidence: '95%',
-          date: now,
-          duration: (durationMs / 1000).toFixed(2) + 's',
+          date: timestampStr,
+          duration: `${parseFloat(duration).toFixed(2)}s`,
           location: coords,
-        };
+          imageUri: photo.uri, // ✅ Add this line
+        };        
 
         const existing = await AsyncStorage.getItem('scanHistory');
         const updated = existing ? [...JSON.parse(existing), newEntry] : [newEntry];
         await AsyncStorage.setItem('scanHistory', JSON.stringify(updated));
-
-        setTimestamp(now);
 
         setTimeout(() => {
           scrollRef.current?.scrollTo({
@@ -98,7 +118,7 @@ export default function CameraScreen() {
           });
         }, 300);
       } catch (err) {
-        console.error('Error capturing scan:', err);
+        console.error('❌ Error during capture:', err);
       } finally {
         setIsSyncing(false);
       }
@@ -129,34 +149,32 @@ export default function CameraScreen() {
       snapToInterval={SCREEN_HEIGHT}
       decelerationRate="fast"
     >
-      {/* CAMERA SCREEN */}
+      {/* CAMERA VIEW */}
       <View style={styles.cameraContainer}>
         <CameraComponent ref={cameraRef} style={styles.camera} />
 
-        {capturedPhotoUri === 'FREEZE' && (
-          <View style={styles.freezeOverlay} />
-        )}
+        {capturedPhotoUri === 'FREEZE' && <View style={styles.freezeOverlay} />}
 
         {isSyncing && (
           <View style={styles.overlayLoader}>
             <ActivityIndicator size="large" color="#fff" />
-            <Text style={styles.loadingText}>Analyzing...</Text>
+            <Text style={styles.loadingText}>Analysing...</Text>
+            <Text style={styles.speedText}> {liveTimer}s</Text>
           </View>
         )}
 
-        {/* Capture Button */}
         <View style={styles.captureButtonWrapper}>
           <TouchableOpacity
             style={[styles.captureButton, isSyncing && { opacity: 0.5 }]}
             onPress={handleCapture}
             disabled={isSyncing}
           >
-            <Text style={styles.captureText}>Capture & Analyze</Text>
+            <Text style={styles.captureText}>Capture & Analyse</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* RESULT SECTION */}
+      {/* RESULTS SECTION */}
       <View style={styles.resultContainer}>
         {resultPhotoUri ? (
           <View style={styles.resultBox}>
@@ -165,7 +183,7 @@ export default function CameraScreen() {
             <Text style={styles.timestamp}>{timestamp}</Text>
             <Text style={styles.resultItem}>🐟 Classification: <Text style={styles.bold}>Dummy Fish</Text></Text>
             <Text style={styles.resultItem}>🎯 Accuracy: <Text style={styles.bold}>95%</Text></Text>
-            <Text style={styles.resultItem}>⏱️ Speed: <Text style={styles.bold}>1.5s</Text></Text>
+            <Text style={styles.resultItem}>⏱️ Speed: <Text style={styles.bold}>{liveTimer}s</Text></Text>
             {locationData && (
               <TouchableOpacity onPress={() => navigation.navigate('Map')}>
                 <Text style={styles.mapLink}>📍 View on Map</Text>
@@ -174,7 +192,7 @@ export default function CameraScreen() {
           </View>
         ) : (
           <View style={styles.waitingBox}>
-            <Text style={styles.waitingText}>Take a capture to see analysis here ↓</Text>
+            <Text style={styles.waitingText}>Take a capture to see analysis here</Text>
           </View>
         )}
       </View>
@@ -220,6 +238,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
   },
+  speedText: {
+    marginTop: 6,
+    color: '#fff',
+    fontSize: 14,
+  },
   captureButtonWrapper: {
     position: 'absolute',
     bottom: 40,
@@ -254,7 +277,7 @@ const styles = StyleSheet.create({
   resultTitle: {
     fontSize: 20,
     fontWeight: '700',
-    marginBottom: 12,
+    marginBottom: 60,
     color: theme.colors.darkText,
   },
   resultImage: {

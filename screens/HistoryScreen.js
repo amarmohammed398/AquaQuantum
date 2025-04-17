@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import theme from '../theme';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
@@ -14,7 +14,10 @@ export default function HistoryScreen() {
     React.useCallback(() => {
       const load = async () => {
         const stored = await AsyncStorage.getItem('scanHistory');
-        setHistory(stored ? JSON.parse(stored) : []);
+        const parsed = stored ? JSON.parse(stored) : [];
+        const sorted = parsed.sort((a, b) => parseInt(b.id) - parseInt(a.id)); // newest first
+        setHistory(sorted);
+  
         if (route.params?.highlightId) {
           setHighlightId(route.params.highlightId);
         } else {
@@ -23,7 +26,7 @@ export default function HistoryScreen() {
       };
       load();
     }, [route.params])
-  );
+  );  
 
   const clearHistory = async () => {
     await AsyncStorage.removeItem('scanHistory');
@@ -32,22 +35,29 @@ export default function HistoryScreen() {
 
   const renderItem = ({ item }) => {
     const isHighlighted = item.id === highlightId;
+    const duration = item.duration?.toString().replace('s', '') ?? '—';
 
     return (
       <View style={[styles.itemBox, isHighlighted && styles.highlight]}>
-        <Text style={styles.itemText}>
-          🗓️ {item.date}{"\n"}
-          🐟 Classification: {item.species}{"\n"}
-          🎯 Accuracy: ({item.confidence}){"\n"}
-          ⏱️ Speed: {item.duration || '—'}
-        </Text>
-        {item.location && (
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Map')}
-          >
-            <Text style={styles.link}>📍 View on Map</Text>
-          </TouchableOpacity>
-        )}
+        <View style={styles.rowContainer}>
+          {/* Thumbnail */}
+          {item.imageUri && (
+            <Image source={{ uri: item.imageUri }} style={styles.thumbnail} />
+          )}
+
+          {/* Metadata */}
+          <View style={styles.details}>
+            <Text style={styles.label}>🗓️ {item.date}</Text>
+            <Text style={styles.label}>🐟 {item.species}</Text>
+            <Text style={styles.label}>🎯 {item.confidence}</Text>
+            <Text style={styles.label}>⏱️ {duration}s</Text>
+            {item.location && (
+              <TouchableOpacity onPress={() => navigation.navigate('Map')}>
+                <Text style={styles.link}>📍 View on Map</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
       </View>
     );
   };
@@ -59,6 +69,7 @@ export default function HistoryScreen() {
         data={history}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
+        contentContainerStyle={{ paddingBottom: theme.spacing.large }}
       />
       {history.length > 0 && (
         <TouchableOpacity style={styles.clearButton} onPress={clearHistory}>
@@ -77,12 +88,39 @@ const styles = StyleSheet.create({
   },
   header: {
     ...theme.typography.header,
-    marginBottom: theme.spacing.small,
+    marginTop: theme.spacing.large,
+    marginBottom: theme.spacing.medium,
   },
-  itemText: {
-    fontSize: 16,
+  itemBox: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: theme.spacing.medium,
+    marginBottom: theme.spacing.medium,
+    elevation: 2,
+  },
+  rowContainer: {
+    flexDirection: 'row',
+  },
+  thumbnail: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: theme.spacing.medium,
+    backgroundColor: '#eee',
+  },
+  details: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  label: {
+    fontSize: 15,
     color: theme.colors.darkText,
-    marginBottom: theme.spacing.small,
+    marginBottom: 2,
+  },
+  link: {
+    color: theme.colors.secondary,
+    marginTop: 4,
+    fontSize: 15,
   },
   clearButton: {
     backgroundColor: theme.colors.primary,
@@ -97,19 +135,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
-  itemBox: {
-    marginBottom: theme.spacing.medium,
-    padding: theme.spacing.medium,
-    borderRadius: 12,
-    backgroundColor: '#fff',
-    elevation: 2,
-  },
   highlight: {
     borderWidth: 2,
     borderColor: theme.colors.primary,
   },
-  link: {
-    color: theme.colors.secondary,
-    marginTop: 4,
-  },  
 });
