@@ -20,6 +20,8 @@ const CameraComponent = CameraModule.CameraView;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
+const dummySpeciesList = ['Trout', 'Bass', 'Pike', 'Salmon', 'Perch'];
+
 export default function CameraScreen() {
   const [hasPermission, setHasPermission] = useState(null);
   const [capturedPhotoUri, setCapturedPhotoUri] = useState(null);
@@ -69,6 +71,7 @@ export default function CameraScreen() {
       setCapturedPhotoUri('FREEZE');
       setResultPhotoUri(null);
       setLiveTimer('0.00');
+      const randomSpecies = dummySpeciesList[Math.floor(Math.random() * dummySpeciesList.length)];
 
       try {
         const photo = await cameraRef.current.takePictureAsync({ skipProcessing: true });
@@ -99,7 +102,7 @@ export default function CameraScreen() {
 
         const newEntry = {
           id: Date.now().toString(),
-          species: 'Dummy Fish',
+          species: randomSpecies,
           confidence: '95%',
           date: timestampStr,
           duration: `${parseFloat(duration).toFixed(2)}s`,

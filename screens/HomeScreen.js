@@ -1,14 +1,33 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import QuantumLogo from '../components/QuantumLogo';  // Import the reusable component
-import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
-import theme from '../theme'; // Import the theme for consistent styles
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
+import QuantumLogo from '../components/QuantumLogo';
+import { FontAwesome5 } from '@expo/vector-icons';
+import theme from '../theme';
 
 const HomeScreen = ({ navigation }) => {
+  const [scanCount, setScanCount] = useState(0);
+  const [speciesCount, setSpeciesCount] = useState(0);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const loadCounts = async () => {
+        const stored = await AsyncStorage.getItem('scanHistory');
+        const parsed = stored ? JSON.parse(stored) : [];
+
+        setScanCount(parsed.length);
+
+        const speciesSet = new Set(parsed.map((entry) => entry.species));
+        setSpeciesCount(speciesSet.size);
+      };
+
+      loadCounts();
+    }, [])
+  );
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Reusable Quantum Logo Component */}
       <QuantumLogo />
 
       <Text style={styles.header}>AquaQuantum</Text>
@@ -16,10 +35,10 @@ const HomeScreen = ({ navigation }) => {
 
       <View style={styles.statsBox}>
         <Text style={styles.statsText}>
-          Scans: <Text style={styles.statsNumber}>12</Text>
+          Scans: <Text style={styles.statsNumber}>{scanCount}</Text>
         </Text>
         <Text style={styles.statsText}>
-          Species Identified: <Text style={styles.statsNumber}>9</Text>
+          Species Identified: <Text style={styles.statsNumber}>{speciesCount}</Text>
         </Text>
       </View>
 
@@ -117,4 +136,3 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
-
