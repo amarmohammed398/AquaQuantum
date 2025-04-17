@@ -3,6 +3,7 @@ import { View, StyleSheet, Button, Text, Image } from 'react-native';
 import * as CameraModule from 'expo-camera';
 import theme from '../theme';
 import { TouchableOpacity } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CameraComponent = CameraModule.CameraView;
 
@@ -30,11 +31,30 @@ export default function CameraScreen() {
         const photo = await cameraRef.current.takePictureAsync({ quality: 0.7 });
         setCapturedPhoto(photo.uri);
         console.log('📷 Captured photo URI:', photo.uri);
+  
+        const start = Date.now();
+  
+        // Simulate classification delay
+        await new Promise((resolve) => setTimeout(resolve, 1500)); // 1.5 sec delay
+  
+        const durationMs = Date.now() - start;
+  
+        const newEntry = {
+          id: Date.now().toString(),
+          species: 'Dummy Fish',
+          confidence: '95%',
+          date: new Date().toLocaleString(),
+          duration: (durationMs / 1000).toFixed(2) + 's', // e.g., "1.52s"
+        };
+  
+        const existing = await AsyncStorage.getItem('scanHistory');
+        const updated = existing ? [...JSON.parse(existing), newEntry] : [newEntry];
+        await AsyncStorage.setItem('scanHistory', JSON.stringify(updated));
       } catch (err) {
         console.error('Error taking photo:', err);
       }
     }
-  };
+  };  
 
   if (hasPermission === null) {
     return (
@@ -125,8 +145,8 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary,
     paddingVertical: theme.spacing.medium,
     paddingHorizontal: theme.spacing.large,
-    borderRadius: 12, // This controls the shape
-    width: '100%', // Or set a fixed width like 250
+    borderRadius: 12,
+    width: '100%',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
