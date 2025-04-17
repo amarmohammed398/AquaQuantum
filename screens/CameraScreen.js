@@ -1,23 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Button, Text, Image } from 'react-native';
+import { View, StyleSheet, Text, Image, BackHandler, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
 import * as CameraModule from 'expo-camera';
-import theme from '../theme';
-import { TouchableOpacity } from 'react-native';
+import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import theme from '../theme';
 
 const CameraComponent = CameraModule.CameraView;
 
 export default function CameraScreen() {
   const [hasPermission, setHasPermission] = useState(null);
   const [capturedPhoto, setCapturedPhoto] = useState(null);
+  const [locationData, setLocationData] = useState(null);
+  const [timestamp, setTimestamp] = useState(null);
+  const [isSyncing, setIsSyncing] = useState(false);
   const cameraRef = useRef(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
     (async () => {
       try {
-        console.log('🛠 Requesting camera permission...');
         const { status } = await CameraModule.Camera.requestCameraPermissionsAsync();
-        console.log('✅ Permission result:', status);
         setHasPermission(status === 'granted');
       } catch (error) {
         console.error('❌ Error requesting permission:', error);
@@ -25,36 +28,64 @@ export default function CameraScreen() {
     })();
   }, []);
 
+  // Disable back button during sync
+  useEffect(() => {
+    const backAction = () => {
+      if (isSyncing) {
+        return true;
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+    return () => backHandler.remove();
+  }, [isSyncing]);
+
   const handleCapture = async () => {
     if (cameraRef.current) {
+      setIsSyncing(true);
       try {
         const photo = await cameraRef.current.takePictureAsync({ quality: 0.7 });
-        setCapturedPhoto(photo.uri);
-        console.log('📷 Captured photo URI:', photo.uri);
-  
+
         const start = Date.now();
-  
-        // Simulate classification delay
-        await new Promise((resolve) => setTimeout(resolve, 1500)); // 1.5 sec delay
-  
+        await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate classification delay
         const durationMs = Date.now() - start;
-  
+
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        let coords = null;
+        if (status === 'granted') {
+          const location = await Location.getCurrentPositionAsync({});
+          coords = {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          };
+          setLocationData(coords);
+        }
+
+        const now = new Date().toLocaleString();
+
         const newEntry = {
           id: Date.now().toString(),
           species: 'Dummy Fish',
           confidence: '95%',
-          date: new Date().toLocaleString(),
-          duration: (durationMs / 1000).toFixed(2) + 's', // e.g., "1.52s"
+          date: now,
+          duration: (durationMs / 1000).toFixed(2) + 's',
+          location: coords,
         };
-  
+
         const existing = await AsyncStorage.getItem('scanHistory');
         const updated = existing ? [...JSON.parse(existing), newEntry] : [newEntry];
         await AsyncStorage.setItem('scanHistory', JSON.stringify(updated));
+
+        setCapturedPhoto(photo.uri);
+        setTimestamp(now);
       } catch (err) {
         console.error('Error taking photo:', err);
+      } finally {
+        setIsSyncing(false);
       }
     }
-  };  
+  };
 
   if (hasPermission === null) {
     return (
@@ -73,30 +104,66 @@ export default function CameraScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.cameraContainer}>
-        <CameraComponent ref={cameraRef} style={styles.camera} />
-      </View>
-      <View style={styles.captureButton}>
-        <TouchableOpacity style={styles.button} onPress={handleCapture}>
-          <Text style={styles.buttonText}>Capture & Analyze</Text>
-        </TouchableOpacity>
-      </View>
-      {capturedPhoto && (
-        <View style={styles.preview}>
-          <Text style={styles.previewText}>Captured Photo:</Text>
-          <Image source={{ uri: capturedPhoto }} style={styles.image} />
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.container}>
+        <View style={styles.cameraContainer}>
+          <CameraComponent ref={cameraRef} style={styles.camera} />
         </View>
-      )}
-    </View>
+
+        <View style={styles.captureButton}>
+          <TouchableOpacity
+            style={[styles.button, isSyncing && { opacity: 0.6 }]}
+            onPress={handleCapture}
+            disabled={isSyncing}
+          >
+            <Text style={styles.buttonText}>Capture & Analyze</Text>
+          </TouchableOpacity>
+        </View>
+
+        {isSyncing && (
+          <View style={styles.loadingBox}>
+            <ActivityIndicator size="large" color={theme.colors.primary} />
+            <Text style={styles.loadingText}>Syncing scan data...</Text>
+          </View>
+        )}
+
+        {!isSyncing && capturedPhoto && (
+          <View style={styles.preview}>
+            <Text style={styles.previewText}>Captured Photo:</Text>
+            <Image source={{ uri: capturedPhoto }} style={styles.image} />
+
+            {timestamp && (
+              <Text style={styles.timestamp}>🗓️ {timestamp}</Text>
+            )}
+
+            <View style={styles.resultBox}>
+              <Text style={styles.resultText}>🧬 Classification: <Text style={styles.bold}>Dummy Fish</Text></Text>
+              <Text style={styles.resultText}>🎯 Accuracy: <Text style={styles.bold}>95%</Text></Text>
+              <Text style={styles.resultText}>⏱️ Speed: <Text style={styles.bold}>1.5s</Text></Text>
+            </View>
+
+            {locationData && (
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Map')}
+              >
+                <Text style={styles.mapLink}>📍 View on Map</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  scrollContainer: {
+    flexGrow: 1,
     backgroundColor: theme.colors.background,
     padding: theme.spacing.medium,
+  },
+  container: {
+    flex: 1,
   },
   cameraContainer: {
     height: 400,
@@ -131,6 +198,30 @@ const styles = StyleSheet.create({
     width: 300,
     height: 400,
     borderRadius: 12,
+    marginBottom: theme.spacing.medium,
+  },
+  timestamp: {
+    fontSize: 14,
+    color: theme.colors.lightText,
+    marginBottom: theme.spacing.medium,
+  },
+  resultBox: {
+    width: '100%',
+    marginBottom: theme.spacing.medium,
+  },
+  resultText: {
+    fontSize: 16,
+    color: theme.colors.darkText,
+    marginBottom: 6,
+  },
+  bold: {
+    fontWeight: '600',
+    color: theme.colors.secondary,
+  },
+  mapLink: {
+    color: theme.colors.secondary,
+    marginTop: 10,
+    fontSize: 16,
   },
   centered: {
     flex: 1,
@@ -158,5 +249,14 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  loadingBox: {
+    alignItems: 'center',
+    marginTop: theme.spacing.medium,
+  },
+  loadingText: {
+    ...theme.typography.subtext,
+    marginTop: theme.spacing.small,
+    color: theme.colors.primary,
   },
 });

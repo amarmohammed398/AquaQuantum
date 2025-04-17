@@ -2,25 +2,54 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import theme from '../theme';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 
 export default function HistoryScreen() {
   const [history, setHistory] = useState([]);
+  const [highlightId, setHighlightId] = useState(null);
+  const navigation = useNavigation();
+  const route = useRoute();
 
   useFocusEffect(
     React.useCallback(() => {
-      const loadHistory = async () => {
+      const load = async () => {
         const stored = await AsyncStorage.getItem('scanHistory');
         setHistory(stored ? JSON.parse(stored) : []);
+        if (route.params?.highlightId) {
+          setHighlightId(route.params.highlightId);
+        } else {
+          setHighlightId(null);
+        }
       };
-      loadHistory();
-    }, [])
+      load();
+    }, [route.params])
   );
-  
 
   const clearHistory = async () => {
     await AsyncStorage.removeItem('scanHistory');
     setHistory([]);
+  };
+
+  const renderItem = ({ item }) => {
+    const isHighlighted = item.id === highlightId;
+
+    return (
+      <View style={[styles.itemBox, isHighlighted && styles.highlight]}>
+        <Text style={styles.itemText}>
+          🗓️ {item.date}{"\n"}
+          🐟 Classification: {item.species}{"\n"}
+          🎯 Accuracy: ({item.confidence}){"\n"}
+          ⏱️ Speed: {item.duration || '—'}
+        </Text>
+        {item.location && (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Map')}
+          >
+            <Text style={styles.link}>📍 View on Map</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
   };
 
   return (
@@ -29,11 +58,7 @@ export default function HistoryScreen() {
       <FlatList
         data={history}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <Text style={styles.itemText}>
-            {item.date}: {item.species} ({item.confidence}) - {item.duration || '—'}
-          </Text>
-        )}
+        renderItem={renderItem}
       />
       {history.length > 0 && (
         <TouchableOpacity style={styles.clearButton} onPress={clearHistory}>
@@ -72,4 +97,19 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
+  itemBox: {
+    marginBottom: theme.spacing.medium,
+    padding: theme.spacing.medium,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    elevation: 2,
+  },
+  highlight: {
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
+  },
+  link: {
+    color: theme.colors.secondary,
+    marginTop: 4,
+  },  
 });
