@@ -1,50 +1,166 @@
-# Welcome to your Expo app 👋
+# AquaQuantum 🐟🔬
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**AquaQuantum** is a hybrid AI-powered mobile app for identifying fish species using a Convolutional Neural Network (CNN) enhanced with a Quantum Neural Network (QNN). It provides real-time classification, geotagging, and scan history via a user-friendly mobile interface powered by React Native and Expo.
 
-## Get started
+> 💡 Built with PyTorch, PennyLane, FastAPI, and Expo (React Native)
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## 📱 Features
 
-2. Start the app
+- 📷 **Camera-based Capture**: Use your device camera to capture fish images.
+- ⚛️ **Quantum Hybrid Classifier**: Combines EfficientNet-B0 CNN with a 4-qubit Quantum Neural Network.
+- 🗺️ **Geotagging**: Saves location data of each scan if permission is granted.
+- 📖 **Scan History**: Stores all classified images with metadata.
+- 🧭 **Map Visualization**: Visualize previous scans pinned on a map.
+- 📊 **Statistics Dashboard**: Displays total scans and unique species count.
+- 📘 **Interactive Help Guide**: Easily understand app functionality.
+- 🔗 **Backend API**: Built with FastAPI to serve a quantum-enhanced classification model.
+- 🧪 **Supports Offline History Storage**: Uses local device storage.
 
-   ```bash
-    npx expo start
-   ```
+---
 
-In the output, you'll find options to open the app in a
+## 🛠️ Installation & Setup
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### 📦 Backend (Quantum Hybrid Model Server)
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+1. Install dependencies:
+```bash
+pip install torch torchvision torchaudio
+pip install pennylane pennylane-lightning
+pip install matplotlib scikit-learn tqdm fastapi uvicorn
+```
+2. Run the server:
+```bash
+uvicorn server:app --reload --host 0.0.0.0 --port 8000
+```
+Ensure the model weights (hybrid_qcnn_model_v1.0.pth) and species_mapping.json are in the same directory.
 
-## Get a fresh project
-
-When you're ready, run:
+## 📱 Mobile App (Expo/React Native)
+1. Install dependencies:
 
 ```bash
-npm run reset-project
+npm install
+```
+2. Start the app:
+```bash
+npx expo start
+```
+3. Required Configuration:
+ 
+   - Update the IP under API_URLS.dev to match your local network server IP.
+
+4. Permissions Required:
+
+   - Camera access
+
+   - Location access (optional but enhances experience)
+
+## 🚀 How to Use
+1. Launch the App – The splash screen leads to the Home.
+
+2. Start a Scan – Navigate to the camera, capture an image.
+
+3. Receive Analysis – Image is classified by the backend model and metadata is recorded.
+
+4. View Results:
+
+- 🗂️ History Tab: Review your past scans
+
+- 🗺️ Map Tab: Explore geolocated results
+
+5. Use Help Tab – Get user guidance at any time.
+
+## 📈 Planned Improvements
+- ✅ Replace dummy classification on frontend with live API prediction.
+
+- 🧠 Improve QNN architecture and extend quantum layers.
+
+- ☁️ Deploy FastAPI on cloud or use tunneling for public access.
+
+- 📲 Expand iOS support and responsive design.
+
+- 📤 Add user account integration for sync and backup.
+
+- 🔍 Add filtering options in history view.
+
+## 👨‍🎓 Academic Notice
+This project is developed as part of a final year Synoptic Project. It explores quantum-enhanced machine learning using PennyLane and PyTorch and serves as a demonstrator for hybrid quantum-classical pipelines applied in real-world mobile environments.
+
+## 👨‍💻 Author
+Name: Amar Mukhtar Mohammed
+
+Institution: The Manchester Metropolitan University
+
+Course: B.Sc Computer Science
+
+Supervisor: Dr. Kate MacFarlane & Dr. Matthew Shardlow
+## 📂 Project Directory Structure
+
+```plaintext  
+├── Home Server/  
+│   ├── server.py               → FastAPI server for classification  
+│   ├── hybrid_qcnn_model_v1.0.pth  → Trained PyTorch model  
+│   ├── species_mapping.json    → ID to species name map  
+
+├── Expo React Native App/  
+│   ├── AppNavigator.js         → App routing and screens  
+│   ├── CameraScreen.js         → Main scan/capture logic  
+│   ├── HistoryScreen.js        → Saved results viewer  
+│   ├── MapScreen.js            → Geotag visualization  
+│   ├── HelpScreen.js           → Help and usage instructions  
+│   ├── api.js                  → Image upload and classification request  
+│   ├── HomeScreen.js           → Dashboard with stats and navigation  
+│   ├── SplashScreen.js         → Intro loading screen  
+
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 🧪 Example API Usage
+- Endpoint: POST /predict/
+- Payload: JPEG image
+Response:
 
-## Learn more
+```json
+{
+  "class_id": 12,
+  "class_name": "Rainbow Trout",
+  "confidence": 98.73
+}
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+## 🧠 Tech Stack
+- Frontend: React Native + Expo
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- Backend: FastAPI, PyTorch, PennyLane
 
-## Join the community
+- Quantum Engine: PennyLane Lightning
 
-Join our community of developers creating universal apps.
+- Model: EfficientNet-B0 + BasicEntanglerLayers
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- Storage: AsyncStorage (local)
+
+- Map: react-native-maps
+
+## 📸 Screenshots
+
+### 🔍 Home View 
+<img src="screenshots/Screenshot7.png" width="300"/>  
+<img src="screenshots/Screenshot2.png" width="300"/>
+
+### 🧾 Camera View
+<img src="screenshots/Screenshot3.png" width="300"/>  
+<img src="screenshots/Screenshot4.png" width="300"/>
+
+### 🗺️ Map View
+<img src="screenshots/Screenshot8.jpg" width="300"/>
+
+### 🧾 History Log
+<img src="screenshots/Screenshot5.png" width="300"/>
+
+
+## 📜 License
+This is a student research project. Not for commercial use. The project was developed in full compliance with MMU academic integrity policies,
+
+
+
+
