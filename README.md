@@ -88,13 +88,14 @@ npx expo start
 This project is developed as part of a final year Synoptic Project. It explores quantum-enhanced machine learning using PennyLane and PyTorch and serves as a demonstrator for hybrid quantum-classical pipelines applied in real-world mobile environments.
 
 ## 👨‍💻 Author
-Name: Amar Mukhtar Mohammed
+**Name:** Amar Mukhtar Mohammed
 
-Institution: The Manchester Metropolitan University
+**Institution:** The Manchester Metropolitan University
 
-Course: B.Sc Computer Science
+**Course:** B.Sc Computer Science
 
-Supervisor: Dr. Kate MacFarlane & Dr. Matthew Shardlow
+**Supervisors:** Dr. Kate MacFarlane & Dr. Matthew Shardlow
+
 ## 📂 Project Directory Structure
 
 ```plaintext  
@@ -142,6 +143,8 @@ Response:
 - Map: react-native-maps
 
 ## 📸 Screenshots
+
+> Disclaimer: The data shown in the screenshots below is dummy data and used for demonstration purposes only. 
 
 ### 🔍 Home View 
 <img src="screenshots/Screenshot7.png" width="300"/>  
