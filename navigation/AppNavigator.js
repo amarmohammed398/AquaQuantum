@@ -7,7 +7,7 @@ import HomeScreen from '../screens/HomeScreen';
 import CameraScreen from '../screens/CameraScreen';
 import HistoryScreen from '../screens/HistoryScreen';
 import MapScreen from '../screens/MapScreen';
-import QuantumInsightsScreen from '../screens/QuantumInsightsScreen';
+import HelpScreen from '../screens/HelpScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -20,7 +20,7 @@ export default function AppNavigator() {
         <Stack.Screen name="Camera" component={CameraScreen} />
         <Stack.Screen name="History" component={HistoryScreen} />
         <Stack.Screen name="Map" component={MapScreen} />
-        <Stack.Screen name="QuantumInsights" component={QuantumInsightsScreen} />
+        <Stack.Screen name="Help" component={HelpScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

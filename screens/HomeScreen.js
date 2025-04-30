@@ -58,9 +58,9 @@ const HomeScreen = ({ navigation }) => {
           <Text style={styles.cardText}>Map View</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('QuantumInsights')}>
-          <FontAwesome5 name="atom" size={26} color={theme.colors.secondary} />
-          <Text style={styles.cardText}>Quantum Insights</Text>
+        <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Help')}>
+          <FontAwesome5 name="question-circle" size={26} color={theme.colors.secondary} />
+          <Text style={styles.cardText}>Help</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
