@@ -161,6 +161,50 @@ Response:
 <img src="screenshots/Screenshot5.png" width="300"/>
 
 
+## 🧾 Development Environment Info
+
+The following environment was used during the development of AquaQuantum:
+
+```powershell
+PS C:\Users\amarm\OneDrive - MMU\Year 3\Synoptic Project(1)\Expo React Native App\AquaQuantum> npx envinfo --system --binaries --npmPackages --npmGlobalPackages
+
+System:
+  OS: Windows 11 10.0.26100
+  CPU: (16) x64 12th Gen Intel(R) Core(TM) i7-1270P
+  Memory: 17.27 GB / 31.67 GB
+Binaries:
+  Node: 22.13.1 - C:\Program Files\nodejs\node.EXE
+  npm: 11.1.0 - C:\Program Files\nodejs\npm.CMD
+npmPackages:
+  @babel/core: ^7.20.0 => 7.26.10 
+  @expo/vector-icons: ^14.0.2 => 14.0.4 
+  @react-native-async-storage/async-storage: ^2.1.2 => 2.1.2 
+  @react-navigation/native: ^7.0.18 => 7.0.19 
+  @react-navigation/native-stack: ^7.3.2 => 7.3.3 
+  @types/react: ~18.3.12 => 18.3.20 
+  expo: ~52.0.42 => 52.0.42
+  expo-camera: ~16.0.18 => 16.0.18
+  expo-image-picker: ~16.0.6 => 16.0.6
+  expo-linear-gradient: ~14.0.2 => 14.0.2
+  expo-location: ~18.0.10 => 18.0.10
+  expo-media-library: ~17.0.6 => 17.0.6
+  expo-status-bar: ~2.0.1 => 2.0.1
+  lottie-ios: ^4.5.1 => 4.5.1
+  lottie-react-native: 7.1.0 => 7.1.0
+  react: 18.3.1 => 18.3.1
+  react-native: ^0.76.8 => 0.76.8
+  react-native-gesture-handler: ~2.20.2 => 2.20.2
+  react-native-maps: 1.18.0 => 1.18.0
+  react-native-reanimated: ~3.16.1 => 3.16.7
+  react-native-safe-area-context: 4.12.0 => 4.12.0
+  react-native-screens: ~4.4.0 => 4.4.0
+  react-native-svg: 15.8.0 => 15.8.0
+  typescript: ^5.3.3 => 5.8.2
+npmGlobalPackages:
+  expo-cli: 6.3.12
+  npm: 11.1.0
+```
+
 ## 📜 License
 This is a student research project. Not for commercial use. The project was developed in full compliance with MMU academic integrity policies,
 
