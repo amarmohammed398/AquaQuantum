@@ -17,9 +17,6 @@ export async function classifyImage(imageUri) {
     type: 'image/jpeg',
   });
 
-  console.log('[API] Sending image to:', API_URL);
-  console.log('[API] Image URI:', imageUri);
-
   try {
     const response = await fetch(API_URL, {
       method: 'POST',
@@ -34,7 +31,6 @@ export async function classifyImage(imageUri) {
     }
 
     const data = await response.json();
-    console.log('[API] Response:', data);
     return data;
   } catch (error) {
     console.error('[API] classifyImage error:', error);
