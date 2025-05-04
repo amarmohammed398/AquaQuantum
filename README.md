@@ -24,37 +24,68 @@
 
 ### 📦 Backend (Quantum Hybrid Model Server)
 
-1. Install dependencies:
+1. **Install dependencies:**
+
 ```bash
 pip install torch torchvision torchaudio
 pip install pennylane pennylane-lightning
 pip install matplotlib scikit-learn tqdm fastapi uvicorn
 ```
-2. Run the server:
+
+2. **Ensure the following files exist in the backend directory:**
+
+* `server.py` (FastAPI server)
+* `main.py` (Hybrid model definition)
+* `hybrid_qcnn_model_v1.0.pth` (Pretrained weights)
+* `species_mapping.json` (ID to species mapping)
+
+3. **Run the server:**
+
 ```bash
 uvicorn server:app --reload --host 0.0.0.0 --port 8000
 ```
-Ensure the model weights (hybrid_qcnn_model_v1.0.pth) and species_mapping.json are in the same directory.
 
-## 📱 Mobile App (Expo/React Native)
-1. Install dependencies:
+### Backend Architecture Overview
+
+* `HybridModel`: Combines EfficientNet-B0 CNN (PyTorch) with a custom quantum layer using PennyLane.
+* Quantum Circuit: 4-qubit system with angle embedding and entangling layers.
+* `FastAPI`: Handles image upload and prediction endpoint `/predict/`.
+* Predictions include class ID, species name, and confidence.
+
+Example response:
+
+```json
+{
+  "class_id": 12,
+  "class_name": "Rainbow Trout",
+  "confidence": 98.73
+}
+```
+
+### 📱 Mobile App (Expo/React Native)
+
+1. **Install dependencies:**
 
 ```bash
 npm install
 ```
-2. Start the app:
+
+2. **Start the app:**
+
 ```bash
 npx expo start
 ```
-3. Required Configuration:
- 
-   - Update the IP under API_URLS.dev to match your local network server IP.
 
-4. Permissions Required:
+3. **Required Configuration:**
 
-   - Camera access
+* Update the IP under `API_URLS.dev` in `api.js` to your server's IP (e.g., `http://192.168.1.x:8000`)
 
-   - Location access (optional but enhances experience)
+4. **Permissions Required:**
+
+* Camera access
+* Location access (optional but enhances experience)
+
+---
 
 ## 🚀 How to Use
 1. Launch the App – The splash screen leads to the Home.
@@ -203,6 +234,75 @@ npmPackages:
 npmGlobalPackages:
   expo-cli: 6.3.12
   npm: 11.1.0
+```
+
+The following environment is of the Ubuntu home server, where the model was deployed
+
+```powershell
+
+annotated-types==0.7.0
+anyio==4.9.0
+appdirs==1.4.4
+astunparse==1.6.3
+autograd==1.7.0
+autoray==0.7.1
+cachetools==5.5.2
+certifi==2025.4.26
+charset-normalizer==3.4.1
+click==8.1.8
+diastatic-malt==2.15.2
+exceptiongroup==1.2.2
+fastapi==0.115.12
+filelock==3.18.0
+fsspec==2025.3.2
+gast==0.6.0
+h11==0.16.0
+idna==3.10
+Jinja2==3.1.6
+MarkupSafe==3.0.2
+mpmath==1.3.0
+networkx==3.4.2
+numpy==2.2.5
+nvidia-cublas-cu12==12.6.4.1
+nvidia-cuda-cupti-cu12==12.6.80
+nvidia-cuda-nvrtc-cu12==12.6.77
+nvidia-cuda-runtime-cu12==12.6.77
+nvidia-cudnn-cu12==9.5.1.17
+nvidia-cufft-cu12==11.3.0.4
+nvidia-cufile-cu12==1.11.1.6
+nvidia-curand-cu12==10.3.7.77
+nvidia-cusolver-cu12==11.7.1.2
+nvidia-cusparse-cu12==12.5.4.2
+nvidia-cusparselt-cu12==0.6.3
+nvidia-nccl-cu12==2.26.2
+nvidia-nvjitlink-cu12==12.6.85
+nvidia-nvtx-cu12==12.6.77
+packaging==25.0
+PennyLane==0.41.0
+PennyLane_Lightning==0.41.0
+pillow==11.2.1
+pydantic==2.11.3
+pydantic_core==2.33.1
+python-multipart==0.0.20
+requests==2.32.3
+rustworkx==0.16.0
+scipy==1.15.2
+scipy-openblas32==0.3.29.0.0
+six==1.17.0
+sniffio==1.3.1
+starlette==0.46.2
+sympy==1.13.3
+termcolor==3.0.1
+tomlkit==0.13.2
+torch==2.7.0
+torchaudio==2.7.0
+torchvision==0.22.0
+triton==3.3.0
+typing-inspection==0.4.0
+typing_extensions==4.13.2
+urllib3==2.4.0
+uvicorn==0.34.2
+
 ```
 
 ## 📜 License
