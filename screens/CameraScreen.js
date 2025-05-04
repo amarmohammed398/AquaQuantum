@@ -16,11 +16,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import theme from '../theme';
 
+import * as ImagePicker from 'expo-image-picker';
+import { classifyImage } from './api';
+
 const CameraComponent = CameraModule.CameraView;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const SCREEN_WIDTH = Dimensions.get('window').width;
-
-const dummySpeciesList = ['Trout', 'Bass', 'Pike', 'Salmon', 'Perch'];
 
 export default function CameraScreen() {
   const [hasPermission, setHasPermission] = useState(null);
@@ -30,6 +31,7 @@ export default function CameraScreen() {
   const [timestamp, setTimestamp] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [liveTimer, setLiveTimer] = useState('0.00');
+  const [classificationData, setClassificationData] = useState(null);
   const cameraRef = useRef(null);
   const scrollRef = useRef(null);
   const timerRef = useRef(null);
@@ -62,7 +64,7 @@ export default function CameraScreen() {
     const endTime = Date.now();
     const duration = ((endTime - startTimeRef.current) / 1000).toFixed(2);
     setLiveTimer(duration);
-    return duration; // ✅ Return accurate duration
+    return duration;
   };
 
   const handleCapture = async () => {
@@ -71,20 +73,16 @@ export default function CameraScreen() {
       setCapturedPhotoUri('FREEZE');
       setResultPhotoUri(null);
       setLiveTimer('0.00');
-      const randomSpecies = dummySpeciesList[Math.floor(Math.random() * dummySpeciesList.length)];
 
       try {
         const photo = await cameraRef.current.takePictureAsync({ skipProcessing: true });
-
         setCapturedPhotoUri(null);
         setResultPhotoUri(photo.uri);
+        startTimer();
 
-        startTimer(); // Start the timer
+        const data = await classifyImage(photo.uri);
+        setClassificationData(data);
 
-        // Simulate classification delay
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-
-        // Get location
         let coords = null;
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status === 'granted') {
@@ -96,19 +94,19 @@ export default function CameraScreen() {
           setLocationData(coords);
         }
 
-        const duration = stopTimer(); // ✅ Get final duration
+        const duration = stopTimer();
         const timestampStr = new Date().toLocaleString();
         setTimestamp(timestampStr);
 
         const newEntry = {
           id: Date.now().toString(),
-          species: randomSpecies,
-          confidence: '95%',
+          species: data?.class_name || 'Unknown',
+          confidence: `${data?.confidence || 95}%`,
           date: timestampStr,
           duration: `${parseFloat(duration).toFixed(2)}s`,
           location: coords,
-          imageUri: photo.uri, // ✅ Add this line
-        };        
+          imageUri: photo.uri,
+        };
 
         const existing = await AsyncStorage.getItem('scanHistory');
         const updated = existing ? [...JSON.parse(existing), newEntry] : [newEntry];
@@ -122,9 +120,83 @@ export default function CameraScreen() {
         }, 300);
       } catch (err) {
         console.error('❌ Error during capture:', err);
+        stopTimer();
       } finally {
         setIsSyncing(false);
       }
+    }
+  };
+
+  const handlePickImage = async () => {
+    setIsSyncing(true);
+    setCapturedPhotoUri('FREEZE');
+    setResultPhotoUri(null);
+    setLiveTimer('0.00');
+    let timerStarted = false;
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: false,
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets.length > 0) {
+        const selectedImage = result.assets[0];
+        setCapturedPhotoUri(null);
+        setResultPhotoUri(selectedImage.uri);
+        startTimer();
+        timerStarted = true;
+
+        const data = await classifyImage(selectedImage.uri);
+        setClassificationData(data);
+
+        let coords = null;
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const location = await Location.getCurrentPositionAsync({});
+          coords = {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          };
+          setLocationData(coords);
+        }
+
+        const duration = stopTimer();
+        timerStarted = false;
+
+        const timestampStr = new Date().toLocaleString();
+        setTimestamp(timestampStr);
+
+        const newEntry = {
+          id: Date.now().toString(),
+          species: data?.class_name || 'Unknown',
+          confidence: `${data?.confidence || 95}%`,
+          date: timestampStr,
+          duration: `${parseFloat(duration).toFixed(2)}s`,
+          location: coords,
+          imageUri: selectedImage.uri,
+        };
+
+        const existing = await AsyncStorage.getItem('scanHistory');
+        const updated = existing ? [...JSON.parse(existing), newEntry] : [newEntry];
+        await AsyncStorage.setItem('scanHistory', JSON.stringify(updated));
+
+        setTimeout(() => {
+          scrollRef.current?.scrollTo({
+            y: SCREEN_HEIGHT,
+            animated: true,
+          });
+        }, 300);
+      } else {
+        if (timerStarted) stopTimer();
+      }
+    } catch (err) {
+      console.error('❌ Error picking image:', err);
+      if (timerStarted) stopTimer();
+    } finally {
+      if (timerStarted) stopTimer();
+      setIsSyncing(false);
     }
   };
 
@@ -152,12 +224,9 @@ export default function CameraScreen() {
       snapToInterval={SCREEN_HEIGHT}
       decelerationRate="fast"
     >
-      {/* CAMERA VIEW */}
       <View style={styles.cameraContainer}>
         <CameraComponent ref={cameraRef} style={styles.camera} />
-
         {capturedPhotoUri === 'FREEZE' && <View style={styles.freezeOverlay} />}
-
         {isSyncing && (
           <View style={styles.overlayLoader}>
             <ActivityIndicator size="large" color="#fff" />
@@ -165,7 +234,6 @@ export default function CameraScreen() {
             <Text style={styles.speedText}> {liveTimer}s</Text>
           </View>
         )}
-
         <View style={styles.captureButtonWrapper}>
           <TouchableOpacity
             style={[styles.captureButton, isSyncing && { opacity: 0.5 }]}
@@ -174,18 +242,23 @@ export default function CameraScreen() {
           >
             <Text style={styles.captureText}>Capture & Analyse</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.captureButton, { marginTop: 12 }, isSyncing && { opacity: 0.5 }]}
+            onPress={handlePickImage}
+            disabled={isSyncing}
+          >
+            <Text style={styles.captureText}>Select from Gallery</Text>
+          </TouchableOpacity>
         </View>
       </View>
-
-      {/* RESULTS SECTION */}
       <View style={styles.resultContainer}>
         {resultPhotoUri ? (
           <View style={styles.resultBox}>
             <Text style={styles.resultTitle}>Analysis Result</Text>
             <Image source={{ uri: resultPhotoUri }} style={styles.resultImage} />
             <Text style={styles.timestamp}>{timestamp}</Text>
-            <Text style={styles.resultItem}>🐟 Classification: <Text style={styles.bold}>Dummy Fish</Text></Text>
-            <Text style={styles.resultItem}>🎯 Accuracy: <Text style={styles.bold}>95%</Text></Text>
+            <Text style={styles.resultItem}>🐟 Classification: <Text style={styles.bold}>{classificationData?.class_name || 'Unknown'}</Text></Text>
+            <Text style={styles.resultItem}>🎯 confidence: <Text style={styles.bold}>{classificationData?.confidence || '95%'}</Text></Text>
             <Text style={styles.resultItem}>⏱️ Speed: <Text style={styles.bold}>{liveTimer}s</Text></Text>
             {locationData && (
               <TouchableOpacity onPress={() => navigation.navigate('Map')}>
